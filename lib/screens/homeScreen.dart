@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:nathik_test/controllers/orderController.dart';
 import 'package:nathik_test/models/order.dart';
-import 'package:nathik_test/notifiers/order_notifier.dart';
 import 'package:nathik_test/screens/list_page.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -19,7 +19,7 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context);
+    OrderController orderController = Get.find<OrderController>();
 
     return Scaffold(
       backgroundColor: Colors.grey,
@@ -44,7 +44,6 @@ class HomePageState extends State<HomePage> {
                 onSaved: (String? value) {
                   if (value != null) {
                     _currentOrderName = value;
-                    print('Name: $value');
                   }
                 },
               ),
@@ -61,47 +60,40 @@ class HomePageState extends State<HomePage> {
                 onSaved: (String? value) {
                   if (value != null) {
                     _currentOrderCode = value;
-                    print('Color: $value');
                   }
                 },
               ),
               const SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                itemBuilder: (BuildContext context, int index) => Card(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-
-                    child: ListTile(
-                        title: Text(
-                          orderNotifier.orderList[index].name,
-                          style: const TextStyle(
-                            fontSize: 18,
+              GetBuilder<OrderController>(builder: (controller) {
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemBuilder: (BuildContext context, int index) => Card(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: ListTile(
+                          title: Text(
+                            controller.orderList[index].name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                            ),
                           ),
-                        ),
-                        subtitle: Text(
-                          orderNotifier.orderList[index].code.toString(),
-                          style: const TextStyle(
-                            fontSize: 18,
+                          subtitle: Text(
+                            controller.orderList[index].code.toString(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                            ),
                           ),
-                        ),
-                        trailing: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              orderNotifier.removeOrder(index);
-                            });
-                          },
-                          icon: const Icon(Icons.close),
-                        )),
-                    // child: Column(
-                    //   children: <Widget>[
-
-                    //   ],
-                    // ),
+                          trailing: IconButton(
+                            onPressed: () {
+                              controller.removeOrder(index);
+                            },
+                            icon: const Icon(Icons.close),
+                          )),
+                    ),
                   ),
-                ),
-                itemCount: orderNotifier.orderList.length,
-              ),
+                  itemCount: controller.orderList.length,
+                );
+              }),
               TextButton(
                 child: const Text(
                   'Add Order',
@@ -111,12 +103,12 @@ class HomePageState extends State<HomePage> {
                   if (!_formKey.currentState!.validate()) return;
 
                   _formKey.currentState?.save();
-                  setState(() {
-                    orderNotifier.addOrder(Order(
-                      code: int.parse(_currentOrderCode!),
-                      name: _currentOrderName!,
-                    ));
-                  });
+
+                  orderController.addOrder(Order(
+                    code: int.parse(_currentOrderCode!),
+                    name: _currentOrderName!,
+                  ));
+                  orderController.update();
                 },
               ),
               TextButton(
